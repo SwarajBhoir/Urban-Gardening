@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Urban Community Gardening Platform</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .section {
+      margin-bottom: 40px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 15px;
+      box-shadow: 2px 2px 12px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      color: #2e7d32;
+    }
+    button {
+      background-color: #2e7d32;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align: center;">Urban Community Gardening Platform</h1>
+  
+  <div class="section">
+    <h2>🌿 About Us</h2>
+    <p>
+      We connect urban gardeners with community resources, expert guidance,
+      and local gardening events. Join our platform to find or start a
+      community garden near you!
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>🌍 Existing Gardens</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>City</th>
+          <th>ZIP Code</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody id="gardenTableBody">
+        <!-- Gardens will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>🌱 Add a Garden</h2>
+    <form onsubmit="addGarden(event)">
+      <input type="text" id="gardenName" placeholder="Garden Name" required />
+      <input type="text" id="city" placeholder="City" required />
+      <input type="text" id="zipcode" placeholder="ZIP Code" required />
+      <textarea id="description" placeholder="Short Description" required></textarea>
+      <button type="submit">Add Garden</button>
+    </form>
+    <p id="gardenResponse"></p>
+  </div>
+
+  <div class="section">
+    <h2>🧑‍🤝‍🧑 Connect with Gardeners</h2>
+    <p>Join forums and groups to ask questions, share tips, and coordinate planting schedules with neighbors.</p>
+    <button onclick="joinCommunity()">Join the Community</button>
+  </div>
+
+  <div class="section">
+    <h2>📅 Upcoming Events</h2>
+    <ul>
+      <li>Spring Planting Drive - Apr 28</li>
+      <li>Composting Workshop - May 5</li>
+      <li>Garden Tool Swap - May 12</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>💬 Contact Us</h2>
+    <form onsubmit="sendMessage(event)">
+      <input type="text" id="name" placeholder="Your Name" required />
+      <input type="email" id="email" placeholder="Email Address" required />
+      <textarea id="message" placeholder="Your Message" required></textarea>
+      <button type="submit">Send Message</button>
+    </form>
+    <p id="formResponse"></p>
+  </div>
+
+  <script>
+    const BACKEND_URL = "/api"; // Now using nginx proxy
+
+    function loadGardens() {
+      fetch(`${BACKEND_URL}/gardens`)
+        .then(res => res.json())
+        .then(gardens => {
+          const table = document.getElementById('gardenTableBody');
+          table.innerHTML = '';
+          gardens.forEach(g => {
+            table.innerHTML += `
+              <tr>
+                <td>${g.name}</td>
+                <td>${g.city}</td>
+                <td>${g.zipcode}</td>
+                <td>${g.description}</td>
+              </tr>`;
+          });
+        })
+        .catch(error => console.error('Error loading gardens:', error));
+    }
+
+    function addGarden(event) {
+      event.preventDefault();
+      const garden = {
+        name: document.getElementById('gardenName').value,
+        city: document.getElementById('city').value,
+        zipcode: document.getElementById('zipcode').value,
+        description: document.getElementById('description').value
+      };
+
+      fetch(`${BACKEND_URL}/gardens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(garden)
+      })
+      .then(res => res.text())
+      .then(msg => {
+        document.getElementById('gardenResponse').innerText = msg;
+        loadGardens(); // Refresh gardens after adding
+      })
+      .catch(error => console.error('Error adding garden:', error));
+    }
+
+    function sendMessage(event) {
+      event.preventDefault();
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const message = document.getElementById('message').value;
+
+      fetch(`${BACKEND_URL}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message })
+      })
+      .then(res => res.text())
+      .then(response => {
+        document.getElementById('formResponse').innerText = response;
+      })
+      .catch(error => {
+        document.getElementById('formResponse').innerText = 'Something went wrong!';
+        console.error('Error sending message:', error);
+      });
+    }
+
+    function joinCommunity() {
+      alert('Redirecting to the community forums...');
+    }
+
+    window.onload = loadGardens;
+  </script>
+</body>
+</html>
